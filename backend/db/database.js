@@ -3,12 +3,17 @@ const path = require('path');
 
 const DB_PATH = path.join(__dirname, 'health_portal.db');
 
+let dbReady = false;
+
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
     console.error('❌ Error connecting to SQLite database:', err.message);
-    throw err;
+    console.log('⚠️ Running in read-only/limited mode. Consider using MongoDB for production.');
+    // Don't throw - let API still start
+  } else {
+    console.log('✅ Connected to SQLite database at:', DB_PATH);
+    dbReady = true;
   }
-  console.log('✅ Connected to SQLite database at:', DB_PATH);
 });
 
 // Initialize database tables - Only create if they don't exist

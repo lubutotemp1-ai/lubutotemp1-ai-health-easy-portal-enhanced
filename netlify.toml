@@ -2,11 +2,22 @@
   base = "frontend"
   publish = "build"
   command = "npm run build"
+  environment = {}
 
+# Redirect all /api/* requests to the serverless function
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
 
+# Configure Netlify Functions
 [functions]
   directory = "backend/netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["sqlite3"]
+
+# Cache headers - don't cache API responses
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
