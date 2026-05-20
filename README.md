@@ -907,9 +907,3 @@ If still getting server error:
 - **Consistency**: Unified design language across all pages
 
 ---
-
-**Version**: 2.0.0  
-**Last Updated**: April 2026  
-**Design System**: Cottagecore Minimalistic Glassmorphism  
-**Font**: Montserrat Sans-Serif  
-**Color Palette**: White, Blue, Grey, Green, Red
