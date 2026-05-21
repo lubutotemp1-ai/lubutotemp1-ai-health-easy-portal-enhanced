@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const db = require('../db/database');
+const db = require('../db/database-mongo');
 const authMiddleware = require('../middleware/auth');
 
 // Admin-only middleware

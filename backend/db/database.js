@@ -4,17 +4,27 @@ const path = require('path');
 const DB_PATH = path.join(__dirname, 'health_portal.db');
 
 let dbReady = false;
+let initError = null;
+
+console.log('📊 Database path:', DB_PATH);
 
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
     console.error('❌ Error connecting to SQLite database:', err.message);
-    console.log('⚠️ Running in read-only/limited mode. Consider using MongoDB for production.');
-    // Don't throw - let API still start
+    console.log('⚠️ Running in limited mode. For production, use MongoDB.');
+    initError = err;
   } else {
-    console.log('✅ Connected to SQLite database at:', DB_PATH);
+    console.log('✅ Connected to SQLite database');
     dbReady = true;
   }
 });
+
+// Initialize tables with timeout protection
+setTimeout(() => {
+  if (!dbReady) {
+    console.warn('⚠️ Database still not ready after timeout');
+  }
+}, 5000);
 
 // Initialize database tables - Only create if they don't exist
 // IMPORTANT: Do NOT drop tables here - user data should persist
@@ -22,7 +32,8 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 //   1. Create a separate migration script (e.g., backend/db/migrate.js)
 //   2. Never drop tables in this initialization file
 //   3. User data must only be removed by admin action through the UI
-db.serialize(() => {
+try {
+  db.serialize(() => {
 
   // Users table (patients and admins)
   db.run(`
@@ -38,7 +49,10 @@ db.serialize(() => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
-  `);
+  `, (err) => {
+    if (err) console.error('❌ Error creating users table:', err.message);
+    else console.log('✅ Users table ready');
+  });
 
   // Doctors table
   db.run(`
@@ -217,14 +231,23 @@ db.serialize(() => {
     `INSERT OR IGNORE INTO admins (name, email, password) VALUES ('Admin', 'admin@hospital.com', ?)`,
     [adminPasswordHash]
   );
-});
+  });
+  console.log('✅ Database initialization complete');
+} catch (err) {
+  console.error('❌ Database initialization error:', err.message);
+  console.error('⚠️ Some features may not work properly');
+}
 
 // Helper method to get a single row
 db.get_ = function(sql, params = []) {
   return new Promise((resolve, reject) => {
     this.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
+      if (err) {
+        console.error('❌ Database query error:', err.message);
+        reject(err);
+      } else {
+        resolve(row);
+      }
     });
   });
 };
@@ -233,8 +256,12 @@ db.get_ = function(sql, params = []) {
 db.run_ = function(sql, params = []) {
   return new Promise((resolve, reject) => {
     this.run(sql, params, function(err) {
-      if (err) reject(err);
-      else resolve({ lastInsertRowid: this.lastID, changes: this.changes });
+      if (err) {
+        console.error('❌ Database run error:', err.message);
+        reject(err);
+      } else {
+        resolve({ lastInsertRowid: this.lastID, changes: this.changes });
+      }
     });
   });
 };
@@ -243,8 +270,12 @@ db.run_ = function(sql, params = []) {
 db.all_ = function(sql, params = []) {
   return new Promise((resolve, reject) => {
     this.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
+      if (err) {
+        console.error('❌ Database all error:', err.message);
+        reject(err);
+      } else {
+        resolve(rows);
+      }
     });
   });
 };

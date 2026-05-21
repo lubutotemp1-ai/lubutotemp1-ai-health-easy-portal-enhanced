@@ -14,7 +14,8 @@
 [functions]
   directory = "backend/netlify/functions"
   node_bundler = "esbuild"
-  external_node_modules = ["sqlite3"]
+  # MongoDB (mongoose) is included in esbuild bundling
+  # No external modules needed
 
 # Cache headers - don't cache API responses
 [[headers]]

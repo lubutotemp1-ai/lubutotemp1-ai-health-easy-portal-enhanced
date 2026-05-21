@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../db/database');
+const db = require('../db/database-mongo');
 const authMiddleware = require('../middleware/auth');
 
 // POST /api/auth/register  (patients only)
@@ -80,15 +80,6 @@ router.post('/doctor-login', async (req, res) => {
   } catch (err) {
     console.error('❌ Doctor login error:', err.message, err.stack);
     res.status(500).json({ error: 'Server error during login: ' + err.message });
-  }
-});
-    const token = jwt.sign({ id: doctor.id, email: doctor.email, name: doctor.name, role: 'doctor', department: doctor.department }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({
-      message: 'Login successful!', token,
-      user: { id: doctor.id, name: doctor.name, email: doctor.email, role: 'doctor', department: doctor.department }
-    });
-  } catch (err) {
-    res.status(500).json({ error: 'Server error during login.' });
   }
 });
 

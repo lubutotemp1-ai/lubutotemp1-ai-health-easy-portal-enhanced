@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
+// Use MongoDB database
+const db = require("./db/database-mongo");
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
